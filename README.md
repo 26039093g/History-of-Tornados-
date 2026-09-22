@@ -15,12 +15,14 @@ https://github.com/sd5913/pfad/blob/2026/reference/files.md first. Ten minutes. 
 
 <!-- What goes up and down, and why you looked at it. -->
 
-Even having moved half-way across the United States when I was younger, I've always lived in what many call: "Tornado Valley". This natural phenomenon was a part of everyday life, with most ignoring tornado warning on their phones having lived through several natural disasters without worry. This has created a fascination within me since a young age and is why I choose tornados for this assignment. 
+Even having moved half-way across the United States when I was younger, I've always lived in what many call: "Tornado Valley". This natural phenomenon was a part of everyday life, with most ignoring tornado warning on their phones having lived through several natural disasters without worry. This has created a fascination within me since a young age and is why I choose tornados for this assignment. Tornados functionally are formed when there is a rush of warm moist air collides with colder dry air. 2 different types of winds rotating against each other as they form the pillar of air labeled as a tornado. 
 
 ## The source
 
 <!-- A link to the page or endpoint the file came from, and one line on what is in
 the file: how many rows, what a row means, what the units are. -->
+
+
 
 ## What the picture shows
 
