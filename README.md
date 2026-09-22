@@ -21,8 +21,9 @@ Even having moved half-way across the United States when I was younger, I've alw
 
 <!-- A link to the page or endpoint the file came from, and one line on what is in
 the file: how many rows, what a row means, what the units are. -->
+https://www.kaggle.com/datasets/danbraswell/us-tornado-dataset-1950-2021
 
-
+Each 67,558 row includes when and where tornado happened, how powerful it was on F/EF Scale, the number of fatalities and injuries, and wear the tornado originated exactly in USA. This includes only the year of 2021. 
 
 ## What the picture shows
 
