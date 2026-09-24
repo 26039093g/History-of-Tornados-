@@ -1,16 +1,3 @@
-# The phenomenon
-
-<!-- This is the SD5913 assignment 2 template. Everything in this file is yours to
-replace, and the check counts words: comments like this one are not words, so
-delete each one as you write. Start with the heading: name the phenomenon.
-
-Then, in this order, at least 150 words in total.
-
-New to folders, paths, or the files here whose names start with a dot? Read
-https://github.com/sd5913/pfad/blob/2026/reference/files.md first. Ten minutes. -->
-
-![what the picture is](out/plot.png)
-
 ## The phenomenon
 
 <!-- What goes up and down, and why you looked at it. -->
@@ -30,6 +17,11 @@ Each 67,558 row includes when and where tornado happened, how powerful it was on
 <!-- Two or three sentences. Including what it hides: every transformation throws
 something away, and naming what yours threw away is the easiest way to sound like
 you know what you did. -->
+
+The pictures shows everything except the path the tornados took and the time they formed. I wanted to show the history of tornados in the United States, and including the path width and path length would create visual clutter that wouldn't add anything the visual representation of data. The exact time the tornados formed was also irrelevant for this visualization as it does not change the impact the tornado on the surrounding areas. 
+
+<img width="1073" height="701" alt="Screenshot 2026-09-24 at 4 56 50 PM" src="https://github.com/user-attachments/assets/150a6c41-c385-4804-b02e-8c42cc0306b9" />
+
 
 ## Run it
 
