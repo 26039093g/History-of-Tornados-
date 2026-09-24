@@ -178,30 +178,50 @@ def scale_color(scale):
         return "#1a9850"  # weak or unknown
 
 # ------------------------------------------------------------
-# 6) Create the US map
+# 6) Create the US map using the provided JPG background
 # ------------------------------------------------------------
 center_lat = 39.5
 center_lon = -98.35
+background_image = root / "US-Capitals-Map.jpg"
+if not background_image.exists():
+    raise FileNotFoundError(f"Missing U.S. map background image: {background_image}")
+
+us_bounds = [[24.0, -125.0], [50.0, -66.5]]
 
 m = folium.Map(
     location=[center_lat, center_lon],
-    zoom_start=5,
+    zoom_start=4,
     tiles=None,
-    min_zoom=5,
-    min_lat=24,
-    max_lat=50,
-    min_lon=-125,
-    max_lon=-66.5,
-    max_bounds=True,
+    min_zoom=2,
+    max_zoom=10,
+    no_wrap=True,
 )
 
-folium.TileLayer(
-    tiles="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-    attr="&copy; OpenStreetMap contributors &copy; CARTO",
-    name="Simple light map",
-    subdomains="abcd",
-    max_zoom=20,
-).add_to(m)
+image_overlay = folium.raster_layers.ImageOverlay(
+    image=str(background_image.resolve()),
+    bounds=us_bounds,
+    opacity=1.0,
+    name="U.S. map background",
+)
+image_overlay.add_to(m)
+
+m.fit_bounds(us_bounds)
+
+m.get_root().html.add_child(Element("""
+<style>
+    .leaflet-container {
+        background: transparent !important;
+    }
+    .leaflet-tile-pane,
+    .leaflet-map-pane,
+    .leaflet-layer {
+        background: transparent !important;
+    }
+    body {
+        background: #ffffff !important;
+    }
+</style>
+"""))
 
 # ------------------------------------------------------------
 # 7) Prepare compact marker data for the browser
@@ -263,40 +283,40 @@ slider = f"""
 </style>
 <div id="map-controls" style="
     position: fixed; z-index: 9999; top: 0; right: 0; bottom: 0;
-    width: min(320px, 100vw); display: flex; flex-direction: column;
+    width: min(260px, 100vw); display: flex; flex-direction: column;
     overflow-y: auto; background: #ffffff; box-shadow: -2px 0 10px rgba(0,0,0,.18);
 ">
 <div id="tornado-details" style="
-    display: block; width: 100%; box-sizing: border-box; padding: 14px 16px;
+    display: block; width: 100%; box-sizing: border-box; padding: 10px 12px;
     border: 0; border-bottom: 1px solid #c7cdd4;
-    background: #ffffff; font: 16px Arial, sans-serif; line-height: 2.2;
+    background: #ffffff; font: 13px Arial, sans-serif; line-height: 1.8;
     color: #263238; overflow-y: auto; flex: 1; min-height: 0;
 ">
     <div id="tornado-details-content">
-        <div style="padding-bottom: 6px; text-align: center;">
-            <b style="font-size: 22px;">Selected tornado</b>
+        <div style="padding-bottom: 4px; text-align: center;">
+            <b style="font-size: 18px;">Selected tornado</b>
         </div>
-        <div style="width: calc(100% - 24px); height: 5px; margin: 0 auto 6px; border-radius: 999px; background: #9aa4ad;"></div>
-        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>State</b><span>N/A</span></div>
-        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Year</b><span>N/A</span></div>
-        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Latitude</b><span>N/A</span></div>
-        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Longitude</b><span>N/A</span></div>
-        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Fatalities</b><span>0</span></div>
-        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Injuries</b><span>0</span></div>
-        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>F/EF Scale</b><span>N/A</span></div>
+        <div style="width: calc(100% - 16px); height: 4px; margin: 0 auto 6px; border-radius: 999px; background: #9aa4ad;"></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 6px;"><b>State</b><span>N/A</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 6px;"><b>Year</b><span>N/A</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 6px;"><b>Latitude</b><span>N/A</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 6px;"><b>Longitude</b><span>N/A</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 6px;"><b>Fatalities</b><span>0</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 6px;"><b>Injuries</b><span>0</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 6px;"><b>F/EF Scale</b><span>N/A</span></div>
     </div>
 </div>
 <div id="year-range-control" style="
-    width: 100%; box-sizing: border-box; padding: 14px 16px; margin-top: auto;
+    width: 100%; box-sizing: border-box; padding: 10px 12px; margin-top: auto;
     border: 0; border-top: 1px solid #c7cdd4;
     background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,.18);
-    font: 14px Arial, sans-serif; color: #263238;
+    font: 12px Arial, sans-serif; color: #263238;
 ">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
         <strong>Tornado year</strong>
         <span id="year-label">{min_year}</span>
     </div>
-    <div style="display:grid; gap:6px;">
+    <div style="display:grid; gap:4px;">
         <label for="year-slider">Select a year</label>
         <input id="year-slider" type="range" min="{min_year}" max="{max_year}" value="{min_year}" step="1" aria-label="Select a year">
     </div>
