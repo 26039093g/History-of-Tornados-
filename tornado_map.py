@@ -135,16 +135,17 @@ def make_popup_html(row):
     scale = int(row.get("f_scale", 0))
 
     html = f"""
-    <div style="font-family: Arial, sans-serif; width: 240px; line-height: 1.6; box-sizing: border-box;">
-        <div style="width: calc(100% - 24px); box-sizing: border-box; padding-bottom: 6px; margin-bottom: 6px; border-bottom: 5px solid #9aa4ad;">
+    <div style="font-family: Arial, sans-serif; width: 100%; line-height: 2.2; font-size: 16px; box-sizing: border-box;">
+        <div style="padding-bottom: 12px; font-size: 22px; line-height: 1.3; text-align: center;">
             <b>{state}</b>
         </div>
-        <b>Year:</b> {year}<br>
-        <b>Latitude:</b> {lat:.2f}<br>
-        <b>Longitude:</b> {lon:.2f}<br>
-        <b>Fatalities:</b> {deaths}<br>
-        <b>Injuries:</b> {injuries}<br>
-        <b>F/EF Scale:</b> {scale}<br>
+        <div style="width: calc(100% - 24px); height: 5px; margin: 0 auto 6px; border-radius: 999px; background: #9aa4ad;"></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Year</b><span>{year}</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Latitude</b><span>{lat:.2f}</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Longitude</b><span>{lon:.2f}</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Fatalities</b><span>{deaths}</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Injuries</b><span>{injuries}</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>F/EF Scale</b><span>{scale}</span></div>
     </div>
     """
     return html
@@ -219,24 +220,71 @@ cluster_names = ",\n        ".join(
     f"{year}: {cluster.get_name()}" for year, cluster in year_clusters.items()
 )
 slider = f"""
-<div id="tornado-details" style="
-    display: none; position: fixed; z-index: 9999; top: 20px; right: 20px;
-    width: 240px; padding: 14px 36px 14px 16px; border: 1px solid #c7cdd4;
-    border-radius: 8px; background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 2px 10px rgba(0,0,0,.18); font: 14px Arial, sans-serif;
-    color: #263238;
+<style>
+    #year-slider {{
+        width: 100%;
+        height: 18px;
+        accent-color: #2563eb;
+        cursor: pointer;
+    }}
+    #year-slider::-webkit-slider-runnable-track {{
+        height: 8px;
+        border-radius: 999px;
+        background: #d6dbe1;
+    }}
+    #year-slider::-webkit-slider-thumb {{
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        margin-top: -5px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        background: #2563eb;
+        box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    }}
+    #year-slider::-moz-range-track {{
+        height: 8px;
+        border-radius: 999px;
+        background: #d6dbe1;
+    }}
+    #year-slider::-moz-range-thumb {{
+        width: 18px;
+        height: 18px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        background: #2563eb;
+        box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    }}
+</style>
+<div id="map-controls" style="
+    position: fixed; z-index: 9999; top: 0; right: 0; bottom: 0;
+    width: min(320px, 100vw); display: flex; flex-direction: column;
+    overflow-y: auto; background: #ffffff; box-shadow: -2px 0 10px rgba(0,0,0,.18);
 ">
-    <button id="close-tornado-details" type="button" aria-label="Close tornado details" style="
-        position: absolute; top: 8px; right: 8px; border: 0; background: transparent;
-        font-size: 20px; line-height: 1; cursor: pointer; color: #59636e;
-    ">&times;</button>
-    <div id="tornado-details-content"></div>
+<div id="tornado-details" style="
+    display: block; width: 100%; box-sizing: border-box; padding: 14px 16px;
+    border: 0; border-bottom: 1px solid #c7cdd4;
+    background: #ffffff; font: 16px Arial, sans-serif; line-height: 2.2;
+    color: #263238; overflow-y: auto; flex: 1; min-height: 0;
+">
+    <div id="tornado-details-content">
+        <div style="padding-bottom: 6px; text-align: center;">
+            <b style="font-size: 22px;">Selected tornado</b>
+        </div>
+        <div style="width: calc(100% - 24px); height: 5px; margin: 0 auto 6px; border-radius: 999px; background: #9aa4ad;"></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>State</b><span>N/A</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Year</b><span>N/A</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Latitude</b><span>N/A</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Longitude</b><span>N/A</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Fatalities</b><span>0</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Injuries</b><span>0</span></div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>F/EF Scale</b><span>N/A</span></div>
+    </div>
 </div>
 <div id="year-range-control" style="
-    position: fixed; z-index: 9999; left: 50%; bottom: 24px;
-    transform: translateX(-50%); width: min(420px, calc(100vw - 40px));
-    padding: 14px 16px; border: 1px solid #c7cdd4; border-radius: 8px;
-    background: rgba(255, 255, 255, 0.96); box-shadow: 0 2px 10px rgba(0,0,0,.18);
+    width: 100%; box-sizing: border-box; padding: 14px 16px; margin-top: auto;
+    border: 0; border-top: 1px solid #c7cdd4;
+    background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,.18);
     font: 14px Arial, sans-serif; color: #263238;
 ">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -247,6 +295,7 @@ slider = f"""
         <label for="year-slider">Select a year</label>
         <input id="year-slider" type="range" min="{min_year}" max="{max_year}" value="{min_year}" step="1" aria-label="Select a year">
     </div>
+</div>
 </div>
 <script>
 window.addEventListener('load', function() {{
@@ -279,9 +328,6 @@ window.addEventListener('load', function() {{
             detailsContent.innerHTML = item[1];
             details.style.display = 'block';
         }});
-    }});
-    document.getElementById('close-tornado-details').addEventListener('click', function() {{
-        details.style.display = 'none';
     }});
     updateYear();
 }});
