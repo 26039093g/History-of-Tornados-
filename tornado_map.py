@@ -1,7 +1,7 @@
 # tornado_map.py
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["pandas", "folium"]
+# dependencies = ["pandas", "folium", "branca"]
 # ///
 
 import pandas as pd
@@ -53,9 +53,6 @@ df = pd.read_csv(csv_path)
 # Keep only the data range we want.
 df.columns = [str(c).strip().lower() for c in df.columns]
 
-authorized_years = (df["yr"] >= 1950) & (df["yr"] <= 2021)
-df = df.loc[authorized_years].copy()
-
 # ------------------------------------------------------------
 # 2) Normalize column names
 # ------------------------------------------------------------
@@ -83,6 +80,15 @@ for old, new in rename_map.items():
     if old in df.columns and new not in df.columns:
         df = df.rename(columns={old: new})
 
+required_columns = {"year", "lat", "lon"}
+missing_columns = required_columns - set(df.columns)
+if missing_columns:
+    missing = ", ".join(sorted(missing_columns))
+    raise ValueError(f"Missing required tornado data columns: {missing}")
+
+df["year"] = pd.to_numeric(df["year"], errors="coerce")
+df = df.loc[df["year"].between(1950, 2021)].copy()
+
 # If both start and end coordinates exist, prefer start coordinates to keep the
 # point map consistent with a single tornado touchdown location.
 if "lat" not in df.columns and "slat" in df.columns:
@@ -99,7 +105,9 @@ for col in ["year", "lat", "lon", "fatalities", "injuries"]:
 df = df.dropna(subset=["lat", "lon"]).copy()
 
 # Standardize scale values
-if "f_scale" in df.columns:
+if "f_scale" not in df.columns:
+    df["f_scale"] = 0
+else:
     df["f_scale"] = df["f_scale"].astype(str).str.strip().str.upper()
     df["f_scale"] = df["f_scale"].replace({
         "F0": "0", "F1": "1", "F2": "2", "F3": "3", "F4": "4", "F5": "5",
@@ -114,6 +122,8 @@ df["f_scale"] = df["f_scale"].fillna(0)
 
 # Fill missing fatality/injury counts with 0
 for col in ["fatalities", "injuries"]:
+    if col not in df.columns:
+        df[col] = 0
     if col in df.columns:
         df[col] = df[col].fillna(0)
 
@@ -176,7 +186,7 @@ center_lon = -98.35
 m = folium.Map(
     location=[center_lat, center_lon],
     zoom_start=5,
-    tiles="OpenStreetMap",
+    tiles=None,
     min_zoom=5,
     min_lat=24,
     max_lat=50,
@@ -185,40 +195,35 @@ m = folium.Map(
     max_bounds=True,
 )
 
-# Use one feature layer per year so the browser can show only the selected year.
-year_clusters = {}
-marker_details = []
-for year in sorted(df["year"].dropna().astype(int).unique()):
-    year_clusters[year] = folium.FeatureGroup(name=str(year), show=False).add_to(m)
+folium.TileLayer(
+    tiles="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
+    attr="&copy; OpenStreetMap contributors &copy; CARTO",
+    name="Simple light map",
+    subdomains="abcd",
+    max_zoom=20,
+).add_to(m)
 
 # ------------------------------------------------------------
-# 7) Add one marker per tornado record
+# 7) Prepare compact marker data for the browser
 # ------------------------------------------------------------
+tornado_records = []
 for _, row in df.iterrows():
-    popup_html = make_popup_html(row)
-    radius = 4 + row["fatalities"] * 2 + row["injuries"] * 0.25
-    radius = max(radius, 4)
-    radius = min(radius, 18)
-
-    marker = folium.CircleMarker(
-        location=[row["lat"], row["lon"]],
-        radius=radius,
-        color=scale_color(int(row["f_scale"])),
-        weight=1,
-        fill=True,
-        fill_color=scale_color(int(row["f_scale"])),
-        fill_opacity=0.75,
-        tooltip=f"{STATE_NAMES.get(str(row.get('state', 'Unknown')), row.get('state', 'Unknown'))} • {int(row.get('year', 0))} • F/EF {int(row.get('f_scale', 0))}"
-    )
-    marker.add_to(year_clusters[int(row["year"])])
-    marker_details.append((marker.get_name(), popup_html))
+    state_code = str(row.get("state", "Unknown"))
+    tornado_records.append([
+        int(row["year"]),
+        escape(STATE_NAMES.get(state_code, state_code)),
+        float(row["lat"]),
+        float(row["lon"]),
+        int(row["fatalities"]),
+        int(row["injuries"]),
+        int(row["f_scale"]),
+        scale_color(int(row["f_scale"])),
+    ])
 
 # Add a small, dependency-free range control to the generated Leaflet page.
 min_year = int(df["year"].min())
 max_year = int(df["year"].max())
-cluster_names = ",\n        ".join(
-    f"{year}: {cluster.get_name()}" for year, cluster in year_clusters.items()
-)
+records_json = json.dumps(tornado_records, separators=(",", ":"))
 slider = f"""
 <style>
     #year-slider {{
@@ -300,35 +305,47 @@ slider = f"""
 <script>
 window.addEventListener('load', function() {{
     var map = {m.get_name()};
-    var clusters = {{
-        {cluster_names}
-    }};
+    var tornadoRecords = {records_json};
     var slider = document.getElementById('year-slider');
     var label = document.getElementById('year-label');
-    var details = document.getElementById('tornado-details');
     var detailsContent = document.getElementById('tornado-details-content');
-    var markerDetails = [
-        {",\n        ".join(f"[{marker}, {json.dumps(html)}]" for marker, html in marker_details)}
-    ];
+    var activeLayer = null;
+
+    function makeDetailsHtml(record) {{
+        return '<div style="font-family: Arial, sans-serif; width: 100%; line-height: 2.2; font-size: 16px; box-sizing: border-box;">' +
+            '<div style="padding-bottom: 12px; font-size: 22px; line-height: 1.3; text-align: center;"><b>' + record[1] + '</b></div>' +
+            '<div style="width: calc(100% - 24px); height: 5px; margin: 0 auto 6px; border-radius: 999px; background: #9aa4ad;"></div>' +
+            '<div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Year</b><span>' + record[0] + '</span></div>' +
+            '<div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Latitude</b><span>' + record[2].toFixed(2) + '</span></div>' +
+            '<div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Longitude</b><span>' + record[3].toFixed(2) + '</span></div>' +
+            '<div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Fatalities</b><span>' + record[4] + '</span></div>' +
+            '<div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>Injuries</b><span>' + record[5] + '</span></div>' +
+            '<div style="display: flex; justify-content: space-between; padding-bottom: 10px;"><b>F/EF Scale</b><span>' + record[6] + '</span></div>' +
+            '</div>';
+    }}
 
     function updateYear() {{
         var selectedYear = Number(slider.value);
         label.textContent = selectedYear;
-        Object.keys(clusters).forEach(function(year) {{
-            var cluster = clusters[year];
-            var visible = Number(year) === selectedYear;
-            if (visible && !map.hasLayer(cluster)) map.addLayer(cluster);
-            if (!visible && map.hasLayer(cluster)) map.removeLayer(cluster);
+        if (activeLayer) map.removeLayer(activeLayer);
+        activeLayer = L.featureGroup();
+        tornadoRecords.forEach(function(record) {{
+            if (record[0] !== selectedYear) return;
+            var radius = Math.max(4, Math.min(18, 4 + record[4] * 2 + record[5] * 0.25));
+            var marker = L.circleMarker([record[2], record[3]], {{
+                radius: radius, color: record[7], weight: 1,
+                fill: true, fillColor: record[7], fillOpacity: 0.75
+            }});
+            marker.bindTooltip(record[1] + ' • ' + record[0] + ' • F/EF ' + record[6]);
+            marker.on('click', function() {{
+                detailsContent.innerHTML = makeDetailsHtml(record);
+            }});
+            marker.addTo(activeLayer);
         }});
+        activeLayer.addTo(map);
     }}
 
     slider.addEventListener('input', updateYear);
-    markerDetails.forEach(function(item) {{
-        item[0].on('click', function() {{
-            detailsContent.innerHTML = item[1];
-            details.style.display = 'block';
-        }});
-    }});
     updateYear();
 }});
 </script>
@@ -338,7 +355,7 @@ m.get_root().html.add_child(Element(slider))
 # ------------------------------------------------------------
 # 8) Save the map
 # ------------------------------------------------------------
-out_dir = Path("out")
+out_dir = root / "out"
 out_dir.mkdir(exist_ok=True)
 output_path = out_dir / "tornado_map.html"
 m.save(output_path)
