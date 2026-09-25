@@ -27,6 +27,6 @@ The pictures shows everything except the path the tornados took and the time the
 ```
 uv run fetch.py
 uv run plot.py
+```
 
 http://localhost:8000/out/tornado_map.html
-```
