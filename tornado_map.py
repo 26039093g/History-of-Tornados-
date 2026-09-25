@@ -131,6 +131,15 @@ for col in ["fatalities", "injuries"]:
 if "state" in df.columns:
     df["state"] = df["state"].astype(str).str.strip().str.upper().replace({"nan": "Unknown"})
 
+# The map background is a continental U.S. view, so exclude non-contiguous
+# territories and any coordinates that fall outside the visible map bounds.
+continental_states = {code for code in STATE_NAMES if code not in {"AK", "HI", "PR", "VI"}}
+df = df.loc[
+    df["lat"].between(24, 50) &
+    df["lon"].between(-125, -66.5) &
+    (~df["state"].isin({"AK", "HI", "PR", "VI"}))
+].copy()
+
 # ------------------------------------------------------------
 # 4) Helper function for popup content
 # ------------------------------------------------------------
@@ -178,32 +187,22 @@ def scale_color(scale):
         return "#1a9850"  # weak or unknown
 
 # ------------------------------------------------------------
-# 6) Create the US map using the provided JPG background
+# 6) Create the US map using a real geographic basemap so points stay aligned
+# with the actual state positions rather than being offset by a custom image.
 # ------------------------------------------------------------
 center_lat = 39.5
 center_lon = -98.35
-background_image = root / "US-Capitals-Map.jpg"
-if not background_image.exists():
-    raise FileNotFoundError(f"Missing U.S. map background image: {background_image}")
-
 us_bounds = [[24.0, -125.0], [50.0, -66.5]]
 
 m = folium.Map(
     location=[center_lat, center_lon],
     zoom_start=4,
-    tiles=None,
+    tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     min_zoom=2,
     max_zoom=10,
     no_wrap=True,
 )
-
-image_overlay = folium.raster_layers.ImageOverlay(
-    image=str(background_image.resolve()),
-    bounds=us_bounds,
-    opacity=1.0,
-    name="U.S. map background",
-)
-image_overlay.add_to(m)
 
 m.fit_bounds(us_bounds)
 
