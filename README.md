@@ -20,12 +20,13 @@ you know what you did. -->
 
 The pictures shows everything except the path the tornados took and the time they formed. I wanted to show the history of tornados in the United States, and including the path width and path length would create visual clutter that wouldn't add anything the visual representation of data. The exact time the tornados formed was also irrelevant for this visualization as it does not change the impact the tornado on the surrounding areas. 
 
-<img width="1073" height="701" alt="Screenshot 2026-09-24 at 4 56 50 PM" src="https://github.com/user-attachments/assets/150a6c41-c385-4804-b02e-8c42cc0306b9" />
-
+<img width="1408" height="745" alt="Screenshot 2026-09-25 at 6 12 20 PM" src="https://github.com/user-attachments/assets/dfbd689c-a25b-4d2e-903f-828120c4a9c3" />
 
 ## Run it
 
 ```
 uv run fetch.py
 uv run plot.py
+
+http://localhost:8000/out/tornado_map.html
 ```
