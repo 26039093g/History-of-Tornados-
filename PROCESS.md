@@ -17,4 +17,4 @@ I mostly used the Copilot inside VS Code which took me to ChatGPT Luna. Which I 
 I kept most of the code. Specifically the side bar function and map function which works using a localhost link as the image needed for background is able to be seen through this specific link. This is the only way around this issue when using the basic generated html link which takes you to a site where the background is all 403 Errors. I also kept a function which allows an image of the visualization to stay in /out folder and still being visable and accessable.
 
 ## Rejected
-I rejected specifically the side bar. Deleting an unneeded block of text which adjusted the sliderbar depending if you loaded the visuals in-browser or through VS Code. 
+I rejected specifically the sliding bar. Deleting an unneeded block of text which adjusted the slider bar depending if you loaded the visuals in-browser or through VS Code. 
