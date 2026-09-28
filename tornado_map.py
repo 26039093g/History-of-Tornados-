@@ -250,35 +250,14 @@ slider = f"""
         height: 18px;
         accent-color: #2563eb;
         cursor: pointer;
+        vertical-align: middle;
     }}
     #year-slider::-webkit-slider-runnable-track {{
         height: 8px;
         border-radius: 999px;
         background: #d6dbe1;
     }}
-    #year-slider::-webkit-slider-thumb {{
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        margin-top: -5px;
-        border: 2px solid #ffffff;
-        border-radius: 50%;
-        background: #2563eb;
-        box-shadow: 0 1px 3px rgba(0,0,0,.3);
-    }}
-    #year-slider::-moz-range-track {{
-        height: 8px;
-        border-radius: 999px;
-        background: #d6dbe1;
-    }}
-    #year-slider::-moz-range-thumb {{
-        width: 18px;
-        height: 18px;
-        border: 2px solid #ffffff;
-        border-radius: 50%;
-        background: #2563eb;
-        box-shadow: 0 1px 3px rgba(0,0,0,.3);
-    }}
+
 </style>
 <div id="map-controls" style="
     position: fixed; z-index: 9999; top: 0; right: 0; bottom: 0;
