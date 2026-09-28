@@ -248,6 +248,9 @@ slider = f"""
     #year-slider {{
         width: 100%;
         height: 18px;
+        margin: 0;
+        appearance: none;
+        -webkit-appearance: none;
         accent-color: #2563eb;
         cursor: pointer;
         vertical-align: middle;
@@ -256,6 +259,29 @@ slider = f"""
         height: 8px;
         border-radius: 999px;
         background: #d6dbe1;
+    }}
+    #year-slider::-webkit-slider-thumb {{
+        width: 18px;
+        height: 18px;
+        margin-top: -5px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        background: #2563eb;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+        -webkit-appearance: none;
+    }}
+    #year-slider::-moz-range-track {{
+        height: 8px;
+        border-radius: 999px;
+        background: #d6dbe1;
+    }}
+    #year-slider::-moz-range-thumb {{
+        width: 14px;
+        height: 14px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        background: #2563eb;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
     }}
 
 </style>
