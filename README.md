@@ -29,4 +29,3 @@ uv run fetch.py
 uv run plot.py
 ```
 
-http://localhost:8000/out/tornado_map.html
