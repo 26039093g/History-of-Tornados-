@@ -9,4 +9,5 @@ __pycache__/
 Thumbs.db
 
 # Generated project artifacts
-out/
+out/*
+!out/658846778-dfbd689c-a25b-4d2e-903f-828120c4a9c3.png
